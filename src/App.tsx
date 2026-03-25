@@ -4,7 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { WarehouseProvider } from "@/context/WarehouseContext";
 import AppSidebar from "@/components/AppSidebar";
-import Dashboard from "@/pages/Dashboard";
+import Warehouse3D from "@/pages/Warehouse3D";
 import LotList from "@/pages/LotList";
 import LotRegistration from "@/pages/LotRegistration";
 import LotDetail from "@/pages/LotDetail";
@@ -23,7 +23,7 @@ const App = () => (
             <AppSidebar />
             <main className="flex-1 ml-64 p-8">
               <Routes>
-                <Route path="/" element={<Dashboard />} />
+                <Route path="/" element={<Warehouse3D />} />
                 <Route path="/lots" element={<LotList />} />
                 <Route path="/lots/new" element={<LotRegistration />} />
                 <Route path="/lots/:id" element={<LotDetail />} />
