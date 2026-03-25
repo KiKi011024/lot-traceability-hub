@@ -23,7 +23,7 @@ const App = () => (
             <AppSidebar />
             <main className="flex-1 ml-64 p-8">
               <Routes>
-                <Route path="/" element={<Dashboard />} />
+                <Route path="/" element={<Warehouse3D />} />
                 <Route path="/lots" element={<LotList />} />
                 <Route path="/lots/new" element={<LotRegistration />} />
                 <Route path="/lots/:id" element={<LotDetail />} />

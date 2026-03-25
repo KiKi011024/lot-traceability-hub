@@ -1,11 +1,11 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Package, LayoutDashboard, PlusCircle, Search, Warehouse } from 'lucide-react';
+import { Package, Box, PlusCircle, Search, Warehouse } from 'lucide-react';
 
 const navItems = [
-  { to: '/', label: 'Dashboard', icon: LayoutDashboard },
-  { to: '/lots', label: 'Lots', icon: Package },
-  { to: '/lots/new', label: 'Register Lot', icon: PlusCircle },
-  { to: '/search', label: 'Search', icon: Search },
+  { to: '/', label: 'Almacén 3D', icon: Box },
+  { to: '/lots', label: 'Lotes', icon: Package },
+  { to: '/lots/new', label: 'Registrar Lote', icon: PlusCircle },
+  { to: '/search', label: 'Buscar', icon: Search },
 ];
 
 export default function AppSidebar() {
@@ -20,7 +20,7 @@ export default function AppSidebar() {
           </div>
           <div>
             <h1 className="font-bold text-sidebar-foreground text-lg leading-tight">GAM CORP</h1>
-            <p className="text-xs text-sidebar-foreground/60 font-mono">WAREHOUSE MGMT</p>
+            <p className="text-xs text-sidebar-foreground/60 font-mono">TRAZABILIDAD</p>
           </div>
         </div>
       </div>
@@ -46,7 +46,7 @@ export default function AppSidebar() {
       </nav>
 
       <div className="p-4 border-t border-sidebar-border">
-        <p className="text-xs text-sidebar-foreground/40 font-mono text-center">v1.0 — Traceability System</p>
+        <p className="text-xs text-sidebar-foreground/40 font-mono text-center">v1.0 — Sistema de Trazabilidad</p>
       </div>
     </aside>
   );
