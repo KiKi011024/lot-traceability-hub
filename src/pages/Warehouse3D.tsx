@@ -231,9 +231,10 @@ function WarehouseScene({
         maxPolarAngle={Math.PI / 2.1}
       />
 
-      <ambientLight intensity={0.4} />
-      <directionalLight position={[10, 15, 10]} intensity={0.8} castShadow />
-      <pointLight position={[-5, 6, 0]} intensity={0.3} color="#60a5fa" />
+      <color attach="background" args={['#ffffff']} />
+      <ambientLight intensity={0.6} />
+      <directionalLight position={[10, 15, 10]} intensity={0.7} castShadow />
+      <pointLight position={[-5, 6, 0]} intensity={0.3} color="#3b82f6" />
 
       {/* Ground */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.05, 0]}>
