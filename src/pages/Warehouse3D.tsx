@@ -410,7 +410,7 @@ export default function Warehouse3D() {
       <div className="flex gap-4">
         {/* 3D Canvas */}
         <Card className="flex-1 overflow-hidden">
-          <div className="h-[520px] bg-[hsl(215,50%,8%)] rounded-lg">
+          <div className="h-[520px] bg-white rounded-lg">
             <Canvas>
               <WarehouseScene
                 chamberId={selectedChamber}
