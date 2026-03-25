@@ -62,7 +62,7 @@ const sampleLots: Lot[] = [
 
 export function WarehouseProvider({ children }: { children: React.ReactNode }) {
   const [lots, setLots] = useState<Lot[]>(sampleLots);
-  const [nextId, setNextId] = useState(4);
+  const [nextId, setNextId] = useState(5);
 
   const addLot = useCallback((lotData: Omit<Lot, 'id' | 'lotCode' | 'createdAt' | 'movements' | 'status' | 'quantityWithdrawn'>) => {
     const id = String(nextId);
