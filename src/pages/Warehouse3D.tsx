@@ -5,44 +5,50 @@ import { Lot } from '@/types/lot';
 import { useState, useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import * as THREE from 'three';
 
-// Warehouse layout config
-// Chamber A: 2 rack blocks, Chamber B: 1 rack block
-// Each block: 4 positions wide, 3 levels high
+// Warehouse layout: Chamber C has 2 blocks, Chamber B has 1 block
+// Each block: 6 wide × 13 long × 4 levels high
 const WAREHOUSE_CONFIG = {
   chambers: [
     {
-      id: 'A',
-      label: 'Cámara A',
-      position: [-6, 0, 0] as [number, number, number],
-      size: [10, 5, 6] as [number, number, number],
-      racks: [
-        { id: '01', offset: [-2, 0, 0] as [number, number, number] },
-        { id: '02', offset: [2, 0, 0] as [number, number, number] },
+      id: 'C',
+      label: 'Cámara C',
+      blocks: [
+        { id: '01', label: 'Bloque 01' },
+        { id: '02', label: 'Bloque 02' },
       ],
     },
     {
       id: 'B',
       label: 'Cámara B',
-      position: [6, 0, 0] as [number, number, number],
-      size: [6, 5, 6] as [number, number, number],
-      racks: [
-        { id: '01', offset: [0, 0, 0] as [number, number, number] },
+      blocks: [
+        { id: '01', label: 'Bloque 01' },
       ],
     },
   ],
-  levels: 3,
-  positions: 4,
+  width: 6,   // positions wide (X)
+  length: 13, // positions long (Z)
+  levels: 4,  // levels high (Y)
 };
 
 interface SlotInfo {
   chamber: string;
   rack: string;
   level: string;
-  position: string;
+  position: string; // encoded as "WW-LL" (width-length)
+  widthIdx: number;
+  lengthIdx: number;
+  levelIdx: number;
   lot: Lot | null;
 }
+
+const SLOT_SIZE = { x: 0.85, y: 0.65, z: 0.85 };
+const GAP = 0.08;
+const CELL_X = SLOT_SIZE.x + GAP;
+const CELL_Y = SLOT_SIZE.y + GAP;
+const CELL_Z = SLOT_SIZE.z + GAP;
 
 function RackSlot({
   pos,
@@ -88,7 +94,7 @@ function RackSlot({
         onClick(slotInfo);
       }}
     >
-      <boxGeometry args={[0.8, 0.7, 1.2]} />
+      <boxGeometry args={[SLOT_SIZE.x, SLOT_SIZE.y, SLOT_SIZE.z]} />
       <meshStandardMaterial
         color={color}
         emissive={emissive}
@@ -102,195 +108,185 @@ function RackSlot({
   );
 }
 
-function RackBlock({
-  chamberPos,
-  rackOffset,
+function BlockScene({
+  blockId,
   chamberId,
-  rackId,
   lotMap,
   onHover,
   onLeave,
   onClick,
 }: {
-  chamberPos: [number, number, number];
-  rackOffset: [number, number, number];
+  blockId: string;
   chamberId: string;
-  rackId: string;
   lotMap: Map<string, Lot>;
   onHover: (info: SlotInfo) => void;
   onLeave: () => void;
   onClick: (info: SlotInfo) => void;
 }) {
+  const { width, length, levels } = WAREHOUSE_CONFIG;
+
+  // Center the block
+  const offsetX = -(width - 1) * CELL_X / 2;
+  const offsetZ = -(length - 1) * CELL_Z / 2;
+
   const slots: JSX.Element[] = [];
+  const posts: JSX.Element[] = [];
+  const shelves: JSX.Element[] = [];
 
-  for (let level = 0; level < WAREHOUSE_CONFIG.levels; level++) {
-    for (let pos = 0; pos < WAREHOUSE_CONFIG.positions; pos++) {
-      const levelStr = String(level + 1);
-      const posStr = String(pos + 1).padStart(2, '0');
-      const key = `${chamberId}-${rackId}-${levelStr}-${posStr}`;
-      const lot = lotMap.get(key) || null;
+  for (let lvl = 0; lvl < levels; lvl++) {
+    for (let w = 0; w < width; w++) {
+      for (let l = 0; l < length; l++) {
+        const levelStr = String(lvl + 1);
+        const posStr = `${String(w + 1).padStart(2, '0')}-${String(l + 1).padStart(2, '0')}`;
+        const key = `${chamberId}-${blockId}-${levelStr}-${posStr}`;
+        const lot = lotMap.get(key) || null;
 
-      const x = chamberPos[0] + rackOffset[0] + (pos - 1.5) * 1;
-      const y = level * 0.9 + 0.5;
-      const z = chamberPos[2] + rackOffset[2];
+        const x = offsetX + w * CELL_X;
+        const y = lvl * CELL_Y + SLOT_SIZE.y / 2;
+        const z = offsetZ + l * CELL_Z;
 
-      slots.push(
-        <RackSlot
-          key={key}
-          pos={[x, y, z]}
-          slotInfo={{ chamber: chamberId, rack: rackId, level: levelStr, position: posStr, lot }}
-          onHover={onHover}
-          onLeave={onLeave}
-          onClick={onClick}
-        />
-      );
+        slots.push(
+          <RackSlot
+            key={key}
+            pos={[x, y, z]}
+            slotInfo={{
+              chamber: chamberId,
+              rack: blockId,
+              level: levelStr,
+              position: posStr,
+              widthIdx: w,
+              lengthIdx: l,
+              levelIdx: lvl,
+              lot,
+            }}
+            onHover={onHover}
+            onLeave={onLeave}
+            onClick={onClick}
+          />
+        );
+      }
     }
+
+    // Shelf plane at base of each level
+    const totalW = width * CELL_X;
+    const totalL = length * CELL_Z;
+    shelves.push(
+      <mesh key={`shelf-${lvl}`} position={[0, lvl * CELL_Y + 0.01, 0]}>
+        <boxGeometry args={[totalW + 0.1, 0.03, totalL + 0.1]} />
+        <meshStandardMaterial color="#334155" metalness={0.4} roughness={0.5} transparent opacity={0.35} />
+      </mesh>
+    );
   }
 
-  // Rack frame (vertical posts)
-  const frameX = chamberPos[0] + rackOffset[0];
-  const frameZ = chamberPos[2] + rackOffset[2];
+  // Vertical posts at 4 corners
+  const totalH = levels * CELL_Y;
+  const hw = (width * CELL_X) / 2 + 0.05;
+  const hl = (length * CELL_Z) / 2 + 0.05;
+  for (const [cx, cz] of [[-hw, -hl], [hw, -hl], [-hw, hl], [hw, hl]]) {
+    posts.push(
+      <mesh key={`post-${cx}-${cz}`} position={[cx, totalH / 2, cz]}>
+        <boxGeometry args={[0.05, totalH, 0.05]} />
+        <meshStandardMaterial color="#475569" metalness={0.6} roughness={0.3} />
+      </mesh>
+    );
+  }
 
   return (
     <group>
       {slots}
-      {/* Frame posts */}
-      {[-2, 2].map((dx) => (
-        <mesh key={`post-${dx}`} position={[frameX + dx, 1.3, frameZ]}>
-          <boxGeometry args={[0.06, 2.8, 0.06]} />
-          <meshStandardMaterial color="#475569" metalness={0.6} roughness={0.3} />
-        </mesh>
-      ))}
-      {/* Shelf planes */}
-      {[0, 0.9, 1.8].map((y) => (
-        <mesh key={`shelf-${y}`} position={[frameX, y + 0.1, frameZ]}>
-          <boxGeometry args={[4.2, 0.04, 1.4]} />
-          <meshStandardMaterial color="#334155" metalness={0.4} roughness={0.5} transparent opacity={0.4} />
-        </mesh>
-      ))}
-      {/* Rack label */}
-      <Text
-        position={[frameX, 3.2, frameZ]}
-        fontSize={0.3}
-        color="#94a3b8"
-        anchorX="center"
-        anchorY="middle"
-        font={undefined}
-      >
-        {`Bloque ${rackId}`}
-      </Text>
+      {shelves}
+      {posts}
     </group>
   );
 }
 
-function ChamberBox({
-  position,
-  size,
-  label,
+function WarehouseScene({
+  chamberId,
+  blockId,
+  onHover,
+  onLeave,
+  onClick,
+  lotMap,
 }: {
-  position: [number, number, number];
-  size: [number, number, number];
-  label: string;
+  chamberId: string;
+  blockId: string;
+  onHover: (info: SlotInfo) => void;
+  onLeave: () => void;
+  onClick: (info: SlotInfo) => void;
+  lotMap: Map<string, Lot>;
 }) {
+  const { width, length, levels } = WAREHOUSE_CONFIG;
+  const totalL = length * CELL_Z;
+  const camDist = Math.max(totalL, width * CELL_X) * 1.1;
+
   return (
-    <group>
-      {/* Floor */}
-      <mesh position={[position[0], -0.02, position[2]]} rotation={[-Math.PI / 2, 0, 0]}>
-        <planeGeometry args={[size[0], size[2]]} />
-        <meshStandardMaterial color="#1e293b" transparent opacity={0.3} side={THREE.DoubleSide} />
+    <>
+      <PerspectiveCamera makeDefault position={[camDist * 0.6, camDist * 0.5, camDist * 0.7]} fov={50} />
+      <OrbitControls
+        enablePan
+        enableZoom
+        enableRotate
+        minDistance={3}
+        maxDistance={40}
+        maxPolarAngle={Math.PI / 2.1}
+      />
+
+      <ambientLight intensity={0.4} />
+      <directionalLight position={[10, 15, 10]} intensity={0.8} castShadow />
+      <pointLight position={[-5, 6, 0]} intensity={0.3} color="#60a5fa" />
+
+      {/* Ground */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.05, 0]}>
+        <planeGeometry args={[30, 30]} />
+        <meshStandardMaterial color="#0f172a" />
       </mesh>
-      {/* Walls (wireframe) */}
-      <mesh position={[position[0], size[1] / 2 - 0.5, position[2]]}>
-        <boxGeometry args={size} />
-        <meshStandardMaterial color="#334155" wireframe transparent opacity={0.15} />
-      </mesh>
-      {/* Label */}
+      <gridHelper args={[30, 30, '#1e293b', '#1e293b']} position={[0, -0.04, 0]} />
+
+      {/* Block label */}
       <Text
-        position={[position[0], size[1] + 0.2, position[2]]}
-        fontSize={0.5}
+        position={[0, levels * CELL_Y + 0.5, 0]}
+        fontSize={0.4}
         color="#e2e8f0"
         anchorX="center"
         anchorY="middle"
         fontWeight="bold"
         font={undefined}
       >
-        {label}
+        {`Bloque ${blockId}`}
       </Text>
-    </group>
-  );
-}
 
-function WarehouseScene({
-  onHover,
-  onLeave,
-  onClick,
-  lotMap,
-}: {
-  onHover: (info: SlotInfo) => void;
-  onLeave: () => void;
-  onClick: (info: SlotInfo) => void;
-  lotMap: Map<string, Lot>;
-}) {
-  return (
-    <>
-      <PerspectiveCamera makeDefault position={[0, 8, 14]} fov={50} />
-      <OrbitControls
-        enablePan
-        enableZoom
-        enableRotate
-        minDistance={5}
-        maxDistance={30}
-        maxPolarAngle={Math.PI / 2.1}
+      {/* Axis labels */}
+      <Text position={[0, -0.3, totalL / 2 + 0.8]} fontSize={0.25} color="#64748b" anchorX="center" font={undefined}>
+        Largo (13 pos.)
+      </Text>
+      <Text position={[(width * CELL_X) / 2 + 0.8, -0.3, 0]} fontSize={0.25} color="#64748b" anchorX="center" font={undefined} rotation={[0, -Math.PI / 2, 0]}>
+        Ancho (6 pos.)
+      </Text>
+
+      <BlockScene
+        blockId={blockId}
+        chamberId={chamberId}
+        lotMap={lotMap}
+        onHover={onHover}
+        onLeave={onLeave}
+        onClick={onClick}
       />
-
-      {/* Lighting */}
-      <ambientLight intensity={0.4} />
-      <directionalLight position={[10, 15, 10]} intensity={0.8} castShadow />
-      <pointLight position={[-6, 6, 0]} intensity={0.3} color="#60a5fa" />
-      <pointLight position={[6, 6, 0]} intensity={0.3} color="#f59e0b" />
-
-      {/* Ground plane */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.05, 0]}>
-        <planeGeometry args={[30, 20]} />
-        <meshStandardMaterial color="#0f172a" />
-      </mesh>
-
-      {/* Grid */}
-      <gridHelper args={[30, 30, '#1e293b', '#1e293b']} position={[0, -0.04, 0]} />
-
-      {/* Chambers */}
-      {WAREHOUSE_CONFIG.chambers.map((chamber) => (
-        <group key={chamber.id}>
-          <ChamberBox
-            position={chamber.position}
-            size={chamber.size}
-            label={chamber.label}
-          />
-          {chamber.racks.map((rack) => (
-            <RackBlock
-              key={`${chamber.id}-${rack.id}`}
-              chamberPos={chamber.position}
-              rackOffset={rack.offset}
-              chamberId={chamber.id}
-              rackId={rack.id}
-              lotMap={lotMap}
-              onHover={onHover}
-              onLeave={onLeave}
-              onClick={onClick}
-            />
-          ))}
-        </group>
-      ))}
     </>
   );
 }
 
 export default function Warehouse3D() {
   const { lots } = useWarehouse();
+  const [selectedChamber, setSelectedChamber] = useState('C');
+  const [selectedBlock, setSelectedBlock] = useState('01');
   const [hoveredSlot, setHoveredSlot] = useState<SlotInfo | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<SlotInfo | null>(null);
 
-  // Build a map: "chamber-rack-level-position" -> Lot
+  const chamber = WAREHOUSE_CONFIG.chambers.find(c => c.id === selectedChamber)!;
+
+  // Reset block if not available in selected chamber
+  const currentBlock = chamber.blocks.find(b => b.id === selectedBlock) ? selectedBlock : chamber.blocks[0].id;
+
   const lotMap = useMemo(() => {
     const map = new Map<string, Lot>();
     lots.forEach((lot) => {
@@ -302,11 +298,18 @@ export default function Warehouse3D() {
     return map;
   }, [lots]);
 
-  const totalSlots = WAREHOUSE_CONFIG.chambers.reduce(
-    (sum, c) => sum + c.racks.length * WAREHOUSE_CONFIG.levels * WAREHOUSE_CONFIG.positions, 0
-  );
-  const occupiedSlots = lotMap.size;
-  const availableSlots = totalSlots - occupiedSlots;
+  const { width, length, levels } = WAREHOUSE_CONFIG;
+  const slotsPerBlock = width * length * levels;
+  const totalSlotsInChamber = chamber.blocks.length * slotsPerBlock;
+
+  // Count occupied in current chamber
+  const occupiedInChamber = useMemo(() => {
+    let count = 0;
+    lotMap.forEach((_, key) => {
+      if (key.startsWith(`${selectedChamber}-`)) count++;
+    });
+    return count;
+  }, [lotMap, selectedChamber]);
 
   const displaySlot = selectedSlot || hoveredSlot;
 
@@ -324,7 +327,7 @@ export default function Warehouse3D() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-foreground">Almacén 3D</h1>
-          <p className="text-muted-foreground mt-1">Vista interactiva del almacén de productos terminados</p>
+          <p className="text-muted-foreground mt-1">Vista interactiva del almacén — {chamber.label}</p>
         </div>
         <div className="flex gap-4 text-sm">
           <div className="flex items-center gap-2">
@@ -342,23 +345,63 @@ export default function Warehouse3D() {
         </div>
       </div>
 
-      {/* Stats row */}
+      {/* Chamber & Block selector */}
+      <div className="flex gap-3 items-center">
+        <div className="flex gap-2">
+          {WAREHOUSE_CONFIG.chambers.map((c) => (
+            <Button
+              key={c.id}
+              variant={selectedChamber === c.id ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => {
+                setSelectedChamber(c.id);
+                setSelectedSlot(null);
+                setHoveredSlot(null);
+                // Reset block to first available
+                const firstBlock = WAREHOUSE_CONFIG.chambers.find(ch => ch.id === c.id)!.blocks[0].id;
+                setSelectedBlock(firstBlock);
+              }}
+            >
+              {c.label}
+            </Button>
+          ))}
+        </div>
+        <div className="w-px h-6 bg-border" />
+        <div className="flex gap-2">
+          {chamber.blocks.map((b) => (
+            <Button
+              key={b.id}
+              variant={currentBlock === b.id ? 'secondary' : 'ghost'}
+              size="sm"
+              onClick={() => {
+                setSelectedBlock(b.id);
+                setSelectedSlot(null);
+                setHoveredSlot(null);
+              }}
+            >
+              {b.label}
+            </Button>
+          ))}
+        </div>
+      </div>
+
+      {/* Stats */}
       <div className="grid grid-cols-3 gap-3">
         <Card>
           <CardContent className="p-4 text-center">
-            <p className="text-2xl font-bold font-mono">{totalSlots}</p>
-            <p className="text-xs text-muted-foreground">Espacios totales</p>
+            <p className="text-2xl font-bold font-mono">{totalSlotsInChamber}</p>
+            <p className="text-xs text-muted-foreground">Espacios en {chamber.label}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
-            <p className="text-2xl font-bold font-mono text-success">{availableSlots}</p>
+            <p className="text-2xl font-bold font-mono text-success">{totalSlotsInChamber - occupiedInChamber}</p>
             <p className="text-xs text-muted-foreground">Disponibles</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
-            <p className="text-2xl font-bold font-mono text-warning">{occupiedSlots}</p>
+            <p className="text-2xl font-bold font-mono text-warning">{occupiedInChamber}</p>
             <p className="text-xs text-muted-foreground">Ocupados</p>
           </CardContent>
         </Card>
@@ -370,10 +413,14 @@ export default function Warehouse3D() {
           <div className="h-[520px] bg-[hsl(215,50%,8%)] rounded-lg">
             <Canvas>
               <WarehouseScene
+                chamberId={selectedChamber}
+                blockId={currentBlock}
                 lotMap={lotMap}
                 onHover={setHoveredSlot}
                 onLeave={() => { if (!selectedSlot) setHoveredSlot(null); }}
-                onClick={(info) => setSelectedSlot(prev => prev?.chamber === info.chamber && prev?.rack === info.rack && prev?.level === info.level && prev?.position === info.position ? null : info)}
+                onClick={(info) => setSelectedSlot(prev =>
+                  prev?.chamber === info.chamber && prev?.rack === info.rack && prev?.level === info.level && prev?.position === info.position ? null : info
+                )}
               />
             </Canvas>
           </div>
@@ -387,7 +434,7 @@ export default function Warehouse3D() {
                 <div>
                   <p className="text-xs text-muted-foreground uppercase tracking-wider">Ubicación</p>
                   <p className="text-lg font-mono font-bold text-primary mt-1">
-                    {displaySlot.chamber}-{displaySlot.rack}-{displaySlot.level}-{displaySlot.position}
+                    {displaySlot.chamber}-{displaySlot.rack}-N{displaySlot.level}-{displaySlot.position}
                   </p>
                 </div>
                 <div className="space-y-2 text-sm">
@@ -404,7 +451,7 @@ export default function Warehouse3D() {
                     <span className="font-medium">{displaySlot.level}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Posición</span>
+                    <span className="text-muted-foreground">Fila × Col</span>
                     <span className="font-medium">{displaySlot.position}</span>
                   </div>
                 </div>

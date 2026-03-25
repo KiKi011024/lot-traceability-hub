@@ -23,7 +23,7 @@ const sampleLots: Lot[] = [
   {
     id: '1', lotCode: 'GAM-2603-0001', productPresentation: 'Atún enlatado 150g',
     client: 'SuperMarket Plus', productionLot: 'PL-2025-0412', quantityReceived: 500,
-    quantityWithdrawn: 120, location: { chamber: 'A', rack: '02', level: '2', position: '03' },
+    quantityWithdrawn: 120, location: { chamber: 'C', rack: '02', level: '2', position: '03-05' },
     observations: 'Envío prioritario', productionDate: '2026-03-10', dispatchDate: null,
     createdAt: '2026-03-15T08:30:00', movements: [
       { id: 'm1', date: '2026-03-15T08:30:00', type: 'reception', quantity: 500, notes: 'Recepción inicial' },
@@ -33,7 +33,7 @@ const sampleLots: Lot[] = [
   {
     id: '2', lotCode: 'GAM-2603-0002', productPresentation: 'Sardinas en aceite 125g',
     client: 'FreshMart', productionLot: 'PL-2025-0413', quantityReceived: 300,
-    quantityWithdrawn: 0, location: { chamber: 'B', rack: '01', level: '3', position: '02' },
+    quantityWithdrawn: 0, location: { chamber: 'B', rack: '01', level: '3', position: '02-07' },
     observations: '', productionDate: '2026-03-12', dispatchDate: null,
     createdAt: '2026-03-16T09:15:00', movements: [
       { id: 'm3', date: '2026-03-16T09:15:00', type: 'reception', quantity: 300, notes: 'Recepción inicial' },
@@ -42,7 +42,7 @@ const sampleLots: Lot[] = [
   {
     id: '3', lotCode: 'GAM-2603-0003', productPresentation: 'Atún enlatado 300g',
     client: 'MegaStore', productionLot: 'PL-2025-0410', quantityReceived: 200,
-    quantityWithdrawn: 200, location: { chamber: 'A', rack: '01', level: '1', position: '01' },
+    quantityWithdrawn: 200, location: { chamber: 'C', rack: '01', level: '1', position: '01-01' },
     observations: 'Despachado completo', productionDate: '2026-03-08', dispatchDate: '2026-03-20',
     createdAt: '2026-03-10T07:00:00', movements: [
       { id: 'm4', date: '2026-03-10T07:00:00', type: 'reception', quantity: 200, notes: 'Recepción inicial' },
@@ -52,7 +52,7 @@ const sampleLots: Lot[] = [
   {
     id: '4', lotCode: 'GAM-2603-0004', productPresentation: 'Conserva de pollo 200g',
     client: 'DistriMax', productionLot: 'PL-2025-0415', quantityReceived: 400,
-    quantityWithdrawn: 0, location: { chamber: 'A', rack: '01', level: '2', position: '02' },
+    quantityWithdrawn: 0, location: { chamber: 'C', rack: '01', level: '2', position: '04-10' },
     observations: '', productionDate: '2026-03-18', dispatchDate: null,
     createdAt: '2026-03-20T10:00:00', movements: [
       { id: 'm6', date: '2026-03-20T10:00:00', type: 'reception', quantity: 400, notes: 'Recepción inicial' },
