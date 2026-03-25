@@ -8,6 +8,7 @@ import Warehouse3D from "@/pages/Warehouse3D";
 import LotList from "@/pages/LotList";
 import LotRegistration from "@/pages/LotRegistration";
 import LotDetail from "@/pages/LotDetail";
+import Withdrawals from "@/pages/Withdrawals";
 import SearchPage from "@/pages/SearchPage";
 import NotFound from "./pages/NotFound.tsx";
 
@@ -27,6 +28,7 @@ const App = () => (
                 <Route path="/lots" element={<LotList />} />
                 <Route path="/lots/new" element={<LotRegistration />} />
                 <Route path="/lots/:id" element={<LotDetail />} />
+                <Route path="/withdrawals" element={<Withdrawals />} />
                 <Route path="/search" element={<SearchPage />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
