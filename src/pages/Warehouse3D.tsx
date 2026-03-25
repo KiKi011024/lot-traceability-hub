@@ -247,7 +247,7 @@ function WarehouseScene({
       <Text
         position={[0, levels * CELL_Y + 0.5, 0]}
         fontSize={0.4}
-        color="#e2e8f0"
+        color="#1e293b"
         anchorX="center"
         anchorY="middle"
         fontWeight="bold"
