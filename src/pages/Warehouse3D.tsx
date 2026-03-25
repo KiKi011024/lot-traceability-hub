@@ -71,7 +71,7 @@ function RackSlot({
       : slotInfo.lot.status === 'partial'
         ? '#f59e0b'
         : '#22c55e'
-    : '#1e3a5f';
+    : '#cbd5e1';
 
   const emissive = hovered ? '#ffffff' : '#000000';
 

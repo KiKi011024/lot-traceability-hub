@@ -1,10 +1,11 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Package, Box, PlusCircle, Search, Warehouse } from 'lucide-react';
+import { Package, Box, PlusCircle, Search, Warehouse, ArrowDownRight } from 'lucide-react';
 
 const navItems = [
   { to: '/', label: 'Almacén 3D', icon: Box },
   { to: '/lots', label: 'Lotes', icon: Package },
   { to: '/lots/new', label: 'Registrar Lote', icon: PlusCircle },
+  { to: '/withdrawals', label: 'Salidas', icon: ArrowDownRight },
   { to: '/search', label: 'Buscar', icon: Search },
 ];
 
