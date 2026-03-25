@@ -71,7 +71,7 @@ function RackSlot({
       : slotInfo.lot.status === 'partial'
         ? '#f59e0b'
         : '#22c55e'
-    : '#1e3a5f';
+    : '#cbd5e1';
 
   const emissive = hovered ? '#ffffff' : '#000000';
 
@@ -231,22 +231,23 @@ function WarehouseScene({
         maxPolarAngle={Math.PI / 2.1}
       />
 
-      <ambientLight intensity={0.4} />
-      <directionalLight position={[10, 15, 10]} intensity={0.8} castShadow />
-      <pointLight position={[-5, 6, 0]} intensity={0.3} color="#60a5fa" />
+      <color attach="background" args={['#ffffff']} />
+      <ambientLight intensity={0.6} />
+      <directionalLight position={[10, 15, 10]} intensity={0.7} castShadow />
+      <pointLight position={[-5, 6, 0]} intensity={0.3} color="#3b82f6" />
 
       {/* Ground */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.05, 0]}>
         <planeGeometry args={[30, 30]} />
-        <meshStandardMaterial color="#0f172a" />
+        <meshStandardMaterial color="#f8fafc" />
       </mesh>
-      <gridHelper args={[30, 30, '#1e293b', '#1e293b']} position={[0, -0.04, 0]} />
+      <gridHelper args={[30, 30, '#e2e8f0', '#e2e8f0']} position={[0, -0.04, 0]} />
 
       {/* Block label */}
       <Text
         position={[0, levels * CELL_Y + 0.5, 0]}
         fontSize={0.4}
-        color="#e2e8f0"
+        color="#1e293b"
         anchorX="center"
         anchorY="middle"
         fontWeight="bold"
@@ -410,7 +411,7 @@ export default function Warehouse3D() {
       <div className="flex gap-4">
         {/* 3D Canvas */}
         <Card className="flex-1 overflow-hidden">
-          <div className="h-[520px] bg-[hsl(215,50%,8%)] rounded-lg">
+          <div className="h-[520px] bg-white rounded-lg">
             <Canvas>
               <WarehouseScene
                 chamberId={selectedChamber}
