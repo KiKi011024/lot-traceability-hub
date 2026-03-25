@@ -238,9 +238,9 @@ function WarehouseScene({
       {/* Ground */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.05, 0]}>
         <planeGeometry args={[30, 30]} />
-        <meshStandardMaterial color="#0f172a" />
+        <meshStandardMaterial color="#f8fafc" />
       </mesh>
-      <gridHelper args={[30, 30, '#1e293b', '#1e293b']} position={[0, -0.04, 0]} />
+      <gridHelper args={[30, 30, '#e2e8f0', '#e2e8f0']} position={[0, -0.04, 0]} />
 
       {/* Block label */}
       <Text
