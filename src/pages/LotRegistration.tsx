@@ -6,16 +6,33 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
+
+const PRODUCT_TYPES = ['Bonito', 'Concha', 'Pota'] as const;
+
+const PRESENTATIONS: Record<string, string[]> = {
+  Pota: [
+    'Filete de Pota Precocido', 'Filete de Pota Crudo', 'Tentáculo de Pota',
+    'Anillas de Pota', 'Recorte de Pota', 'Nucas de Pota',
+    'Aleta de Pota', 'Manto de Pota Entero', 'Dados de Pota',
+    'Tiras de Pota', 'Pota Seca Salada', 'Reproductora de Pota',
+    'Pota en Conserva', 'Harina de Pota', 'Botones de Pota',
+    'Mini Filetes de Pota', 'Pota Sazonada', 'Rabas de Pota',
+    'Pota para Surimi', 'Pota Deshilachada',
+  ],
+  Bonito: ['(Presentaciones por definir)'],
+  Concha: ['(Presentaciones por definir)'],
+};
 
 export default function LotRegistration() {
   const { addLot } = useWarehouse();
   const navigate = useNavigate();
 
   const [form, setForm] = useState({
-    productPresentation: '', client: '', productionLot: '',
+    productType: '', productPresentation: '', client: '', productionLot: '',
     quantityReceived: '', chamber: '', rack: '', level: '', position: '',
-    observations: '', productionDate: '', dispatchDate: '',
+    observations: '', productionDate: '',
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -24,19 +41,19 @@ export default function LotRegistration() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.productPresentation || !form.client || !form.quantityReceived || !form.chamber) {
-      toast.error('Please fill in all required fields');
+    if (!form.productType || !form.productPresentation || !form.client || !form.quantityReceived || !form.chamber) {
+      toast.error('Por favor completa todos los campos requeridos');
       return;
     }
     const newLot = addLot({
-      productPresentation: form.productPresentation,
+      productPresentation: `${form.productType} - ${form.productPresentation}`,
       client: form.client,
       productionLot: form.productionLot,
       quantityReceived: parseInt(form.quantityReceived),
       location: { chamber: form.chamber, rack: form.rack, level: form.level, position: form.position },
       observations: form.observations,
       productionDate: form.productionDate,
-      dispatchDate: form.dispatchDate || null,
+      dispatchDate: null,
     });
     toast.success(`Lot ${newLot.lotCode} registered successfully`);
     navigate(`/lots/${newLot.id}`);
@@ -45,38 +62,48 @@ export default function LotRegistration() {
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-foreground">Register New Lot</h1>
-        <p className="text-muted-foreground mt-1">Enter the details for the incoming finished product lot</p>
+        <h1 className="text-3xl font-bold text-foreground">Registrar Nuevo Lote</h1>
+        <p className="text-muted-foreground mt-1">Ingresa los datos del lote de producto terminado</p>
       </div>
 
       <form onSubmit={handleSubmit}>
         <Card>
-          <CardHeader><CardTitle>Product Information</CardTitle></CardHeader>
+          <CardHeader><CardTitle>Información del Producto</CardTitle></CardHeader>
           <CardContent className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="productPresentation">Product Presentation *</Label>
-                <Input id="productPresentation" name="productPresentation" value={form.productPresentation} onChange={handleChange} placeholder="e.g. Canned Tuna 150g" />
+                <Label>Producto *</Label>
+                <Select value={form.productType} onValueChange={(v) => setForm(prev => ({ ...prev, productType: v, productPresentation: '' }))}>
+                  <SelectTrigger><SelectValue placeholder="Seleccionar producto" /></SelectTrigger>
+                  <SelectContent>
+                    {PRODUCT_TYPES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="client">Client *</Label>
-                <Input id="client" name="client" value={form.client} onChange={handleChange} placeholder="Client name" />
+                <Label>Presentación *</Label>
+                <Select value={form.productPresentation} onValueChange={(v) => setForm(prev => ({ ...prev, productPresentation: v }))} disabled={!form.productType}>
+                  <SelectTrigger><SelectValue placeholder={form.productType ? 'Seleccionar presentación' : 'Primero selecciona un producto'} /></SelectTrigger>
+                  <SelectContent>
+                    {(PRESENTATIONS[form.productType] || []).map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="productionLot">Production Lot</Label>
-                <Input id="productionLot" name="productionLot" value={form.productionLot} onChange={handleChange} placeholder="e.g. PL-2025-0412" />
+                <Label htmlFor="client">Cliente *</Label>
+                <Input id="client" name="client" value={form.client} onChange={handleChange} placeholder="Nombre del cliente" />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="quantityReceived">Quantity Received *</Label>
+                <Label htmlFor="productionLot">Lote de Producción</Label>
+                <Input id="productionLot" name="productionLot" value={form.productionLot} onChange={handleChange} placeholder="Ej: PL-2025-0412" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="quantityReceived">Cantidad Recibida *</Label>
                 <Input id="quantityReceived" name="quantityReceived" type="number" value={form.quantityReceived} onChange={handleChange} placeholder="0" />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="productionDate">Production Date</Label>
+                <Label htmlFor="productionDate">Fecha de Producción</Label>
                 <Input id="productionDate" name="productionDate" type="date" value={form.productionDate} onChange={handleChange} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="dispatchDate">Dispatch Date</Label>
-                <Input id="dispatchDate" name="dispatchDate" type="date" value={form.dispatchDate} onChange={handleChange} />
               </div>
             </div>
           </CardContent>
