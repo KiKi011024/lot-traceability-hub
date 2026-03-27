@@ -62,38 +62,48 @@ export default function LotRegistration() {
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-foreground">Register New Lot</h1>
-        <p className="text-muted-foreground mt-1">Enter the details for the incoming finished product lot</p>
+        <h1 className="text-3xl font-bold text-foreground">Registrar Nuevo Lote</h1>
+        <p className="text-muted-foreground mt-1">Ingresa los datos del lote de producto terminado</p>
       </div>
 
       <form onSubmit={handleSubmit}>
         <Card>
-          <CardHeader><CardTitle>Product Information</CardTitle></CardHeader>
+          <CardHeader><CardTitle>Información del Producto</CardTitle></CardHeader>
           <CardContent className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="productPresentation">Product Presentation *</Label>
-                <Input id="productPresentation" name="productPresentation" value={form.productPresentation} onChange={handleChange} placeholder="e.g. Canned Tuna 150g" />
+                <Label>Producto *</Label>
+                <Select value={form.productType} onValueChange={(v) => setForm(prev => ({ ...prev, productType: v, productPresentation: '' }))}>
+                  <SelectTrigger><SelectValue placeholder="Seleccionar producto" /></SelectTrigger>
+                  <SelectContent>
+                    {PRODUCT_TYPES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="client">Client *</Label>
-                <Input id="client" name="client" value={form.client} onChange={handleChange} placeholder="Client name" />
+                <Label>Presentación *</Label>
+                <Select value={form.productPresentation} onValueChange={(v) => setForm(prev => ({ ...prev, productPresentation: v }))} disabled={!form.productType}>
+                  <SelectTrigger><SelectValue placeholder={form.productType ? 'Seleccionar presentación' : 'Primero selecciona un producto'} /></SelectTrigger>
+                  <SelectContent>
+                    {(PRESENTATIONS[form.productType] || []).map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="productionLot">Production Lot</Label>
-                <Input id="productionLot" name="productionLot" value={form.productionLot} onChange={handleChange} placeholder="e.g. PL-2025-0412" />
+                <Label htmlFor="client">Cliente *</Label>
+                <Input id="client" name="client" value={form.client} onChange={handleChange} placeholder="Nombre del cliente" />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="quantityReceived">Quantity Received *</Label>
+                <Label htmlFor="productionLot">Lote de Producción</Label>
+                <Input id="productionLot" name="productionLot" value={form.productionLot} onChange={handleChange} placeholder="Ej: PL-2025-0412" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="quantityReceived">Cantidad Recibida *</Label>
                 <Input id="quantityReceived" name="quantityReceived" type="number" value={form.quantityReceived} onChange={handleChange} placeholder="0" />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="productionDate">Production Date</Label>
+                <Label htmlFor="productionDate">Fecha de Producción</Label>
                 <Input id="productionDate" name="productionDate" type="date" value={form.productionDate} onChange={handleChange} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="dispatchDate">Dispatch Date</Label>
-                <Input id="dispatchDate" name="dispatchDate" type="date" value={form.dispatchDate} onChange={handleChange} />
               </div>
             </div>
           </CardContent>
