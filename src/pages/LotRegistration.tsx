@@ -41,19 +41,19 @@ export default function LotRegistration() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.productPresentation || !form.client || !form.quantityReceived || !form.chamber) {
-      toast.error('Please fill in all required fields');
+    if (!form.productType || !form.productPresentation || !form.client || !form.quantityReceived || !form.chamber) {
+      toast.error('Por favor completa todos los campos requeridos');
       return;
     }
     const newLot = addLot({
-      productPresentation: form.productPresentation,
+      productPresentation: `${form.productType} - ${form.productPresentation}`,
       client: form.client,
       productionLot: form.productionLot,
       quantityReceived: parseInt(form.quantityReceived),
       location: { chamber: form.chamber, rack: form.rack, level: form.level, position: form.position },
       observations: form.observations,
       productionDate: form.productionDate,
-      dispatchDate: form.dispatchDate || null,
+      dispatchDate: null,
     });
     toast.success(`Lot ${newLot.lotCode} registered successfully`);
     navigate(`/lots/${newLot.id}`);
