@@ -6,16 +6,33 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
+
+const PRODUCT_TYPES = ['Bonito', 'Concha', 'Pota'] as const;
+
+const PRESENTATIONS: Record<string, string[]> = {
+  Pota: [
+    'Filete de Pota Precocido', 'Filete de Pota Crudo', 'Tentáculo de Pota',
+    'Anillas de Pota', 'Recorte de Pota', 'Nucas de Pota',
+    'Aleta de Pota', 'Manto de Pota Entero', 'Dados de Pota',
+    'Tiras de Pota', 'Pota Seca Salada', 'Reproductora de Pota',
+    'Pota en Conserva', 'Harina de Pota', 'Botones de Pota',
+    'Mini Filetes de Pota', 'Pota Sazonada', 'Rabas de Pota',
+    'Pota para Surimi', 'Pota Deshilachada',
+  ],
+  Bonito: ['(Presentaciones por definir)'],
+  Concha: ['(Presentaciones por definir)'],
+};
 
 export default function LotRegistration() {
   const { addLot } = useWarehouse();
   const navigate = useNavigate();
 
   const [form, setForm] = useState({
-    productPresentation: '', client: '', productionLot: '',
+    productType: '', productPresentation: '', client: '', productionLot: '',
     quantityReceived: '', chamber: '', rack: '', level: '', position: '',
-    observations: '', productionDate: '', dispatchDate: '',
+    observations: '', productionDate: '',
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
