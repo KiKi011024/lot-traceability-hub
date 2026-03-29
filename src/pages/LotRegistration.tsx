@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useWarehouse } from '@/context/WarehouseContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -25,15 +25,43 @@ const PRESENTATIONS: Record<string, string[]> = {
   Concha: ['(Presentaciones por definir)'],
 };
 
+const CHAMBERS = [
+  { id: 'C', label: 'Cámara C', blocks: ['01', '02'] },
+  { id: 'B', label: 'Cámara B', blocks: ['01'] },
+];
+
+const LEVELS = ['1', '2', '3', '4'];
+const WIDTH = 6;
+const LENGTH = 13;
+
 export default function LotRegistration() {
-  const { addLot } = useWarehouse();
+  const { addLot, lots } = useWarehouse();
   const navigate = useNavigate();
 
   const [form, setForm] = useState({
     productType: '', productPresentation: '', client: '', productionLot: '',
-    quantityReceived: '', chamber: '', rack: '', level: '', position: '',
+    quantityReceived: '', chamber: '', rack: '', level: '', widthPos: '', lengthPos: '',
     observations: '', productionDate: '',
   });
+
+  const selectedChamber = CHAMBERS.find(c => c.id === form.chamber);
+
+  // Build set of occupied positions for validation
+  const occupiedPositions = useMemo(() => {
+    const set = new Set<string>();
+    lots.forEach(lot => {
+      if (lot.status !== 'dispatched') {
+        set.add(`${lot.location.chamber}-${lot.location.rack}-${lot.location.level}-${lot.location.position}`);
+      }
+    });
+    return set;
+  }, [lots]);
+
+  const currentPositionKey = form.chamber && form.rack && form.level && form.widthPos && form.lengthPos
+    ? `${form.chamber}-${form.rack}-${form.level}-${form.widthPos.padStart(2, '0')}-${form.lengthPos.padStart(2, '0')}`
+    : null;
+
+  const isPositionOccupied = currentPositionKey ? occupiedPositions.has(currentPositionKey) : false;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -41,21 +69,26 @@ export default function LotRegistration() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.productType || !form.productPresentation || !form.client || !form.quantityReceived || !form.chamber) {
+    if (!form.productType || !form.productPresentation || !form.client || !form.quantityReceived || !form.chamber || !form.rack || !form.level || !form.widthPos || !form.lengthPos) {
       toast.error('Por favor completa todos los campos requeridos');
       return;
     }
+    if (isPositionOccupied) {
+      toast.error('Esta posición ya está ocupada. Selecciona otra ubicación.');
+      return;
+    }
+    const position = `${form.widthPos.padStart(2, '0')}-${form.lengthPos.padStart(2, '0')}`;
     const newLot = addLot({
       productPresentation: `${form.productType} - ${form.productPresentation}`,
       client: form.client,
       productionLot: form.productionLot,
       quantityReceived: parseInt(form.quantityReceived),
-      location: { chamber: form.chamber, rack: form.rack, level: form.level, position: form.position },
+      location: { chamber: form.chamber, rack: form.rack, level: form.level, position },
       observations: form.observations,
       productionDate: form.productionDate,
       dispatchDate: null,
     });
-    toast.success(`Lot ${newLot.lotCode} registered successfully`);
+    toast.success(`Lote ${newLot.lotCode} registrado exitosamente`);
     navigate(`/lots/${newLot.id}`);
   };
 
@@ -110,42 +143,81 @@ export default function LotRegistration() {
         </Card>
 
         <Card className="mt-4">
-          <CardHeader><CardTitle>Location Assignment</CardTitle></CardHeader>
-          <CardContent>
-            <div className="grid gap-4 grid-cols-2 md:grid-cols-4">
+          <CardHeader><CardTitle>Asignación de Ubicación</CardTitle></CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid gap-4 grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="chamber">Chamber *</Label>
-                <Input id="chamber" name="chamber" value={form.chamber} onChange={handleChange} placeholder="A" />
+                <Label>Cámara *</Label>
+                <Select value={form.chamber} onValueChange={(v) => setForm(prev => ({ ...prev, chamber: v, rack: '', level: '', widthPos: '', lengthPos: '' }))}>
+                  <SelectTrigger><SelectValue placeholder="Seleccionar cámara" /></SelectTrigger>
+                  <SelectContent>
+                    {CHAMBERS.map(c => <SelectItem key={c.id} value={c.id}>{c.label}</SelectItem>)}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="rack">Rack</Label>
-                <Input id="rack" name="rack" value={form.rack} onChange={handleChange} placeholder="01" />
+                <Label>Bloque *</Label>
+                <Select value={form.rack} onValueChange={(v) => setForm(prev => ({ ...prev, rack: v }))} disabled={!form.chamber}>
+                  <SelectTrigger><SelectValue placeholder="Seleccionar bloque" /></SelectTrigger>
+                  <SelectContent>
+                    {(selectedChamber?.blocks || []).map(b => <SelectItem key={b} value={b}>Bloque {b}</SelectItem>)}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="level">Level</Label>
-                <Input id="level" name="level" value={form.level} onChange={handleChange} placeholder="1" />
+                <Label>Nivel *</Label>
+                <Select value={form.level} onValueChange={(v) => setForm(prev => ({ ...prev, level: v }))}>
+                  <SelectTrigger><SelectValue placeholder="Nivel" /></SelectTrigger>
+                  <SelectContent>
+                    {LEVELS.map(l => <SelectItem key={l} value={l}>Nivel {l}</SelectItem>)}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="position">Position</Label>
-                <Input id="position" name="position" value={form.position} onChange={handleChange} placeholder="01" />
+                <Label>Ancho (Columna) *</Label>
+                <Select value={form.widthPos} onValueChange={(v) => setForm(prev => ({ ...prev, widthPos: v }))}>
+                  <SelectTrigger><SelectValue placeholder="Col." /></SelectTrigger>
+                  <SelectContent>
+                    {Array.from({ length: WIDTH }, (_, i) => String(i + 1)).map(w => (
+                      <SelectItem key={w} value={w}>{w}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2 col-span-2">
+                <Label>Largo (Fila) *</Label>
+                <Select value={form.lengthPos} onValueChange={(v) => setForm(prev => ({ ...prev, lengthPos: v }))}>
+                  <SelectTrigger><SelectValue placeholder="Fila" /></SelectTrigger>
+                  <SelectContent>
+                    {Array.from({ length: LENGTH }, (_, i) => String(i + 1)).map(l => (
+                      <SelectItem key={l} value={l}>{l}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
+            {isPositionOccupied && (
+              <p className="text-sm text-destructive font-medium">⚠ Esta posición ya está ocupada por otro lote.</p>
+            )}
+            {currentPositionKey && !isPositionOccupied && (
+              <p className="text-sm text-success font-medium">✓ Posición disponible</p>
+            )}
           </CardContent>
         </Card>
 
         <Card className="mt-4">
-          <CardHeader><CardTitle>Additional Information</CardTitle></CardHeader>
+          <CardHeader><CardTitle>Información Adicional</CardTitle></CardHeader>
           <CardContent>
             <div className="space-y-2">
-              <Label htmlFor="observations">Observations</Label>
-              <Textarea id="observations" name="observations" value={form.observations} onChange={handleChange} placeholder="Any relevant notes about this lot..." rows={3} />
+              <Label htmlFor="observations">Observaciones</Label>
+              <Textarea id="observations" name="observations" value={form.observations} onChange={handleChange} placeholder="Notas relevantes sobre este lote..." rows={3} />
             </div>
           </CardContent>
         </Card>
 
         <div className="flex gap-3 mt-6">
-          <Button type="submit" className="flex-1">Register Lot</Button>
-          <Button type="button" variant="outline" onClick={() => navigate('/lots')}>Cancel</Button>
+          <Button type="submit" className="flex-1" disabled={isPositionOccupied}>Registrar Lote</Button>
+          <Button type="button" variant="outline" onClick={() => navigate('/lots')}>Cancelar</Button>
         </div>
       </form>
     </div>
