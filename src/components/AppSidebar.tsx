@@ -1,5 +1,7 @@
-import { Link, useLocation } from 'react-router-dom';
-import { Package, Box, PlusCircle, Search, Warehouse, ArrowDownRight } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Package, Box, PlusCircle, Search, Warehouse, ArrowDownRight, LogOut } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 const navItems = [
   { to: '/', label: 'Almacén 3D', icon: Box },
