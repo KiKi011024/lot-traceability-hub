@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useWarehouse } from '@/context/WarehouseContext';
+import { UnitType } from '@/types/lot';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -34,19 +35,23 @@ const LEVELS = ['1', '2', '3', '4'];
 const WIDTH = 6;
 const LENGTH = 13;
 
+const UNITS: { value: UnitType; label: string }[] = [
+  { value: 'sacos', label: 'Sacos' },
+  { value: 'cajas', label: 'Cajas' },
+];
+
 export default function LotRegistration() {
   const { addLot, lots } = useWarehouse();
   const navigate = useNavigate();
 
   const [form, setForm] = useState({
     productType: '', productPresentation: '', client: '', productionLot: '',
-    quantityReceived: '', chamber: '', rack: '', level: '', widthPos: '', lengthPos: '',
-    observations: '', productionDate: '',
+    quantityReceived: '', unit: '' as string, chamber: '', rack: '', level: '',
+    widthPos: '', lengthPos: '', observations: '', productionDate: '',
   });
 
   const selectedChamber = CHAMBERS.find(c => c.id === form.chamber);
 
-  // Build set of occupied positions for validation
   const occupiedPositions = useMemo(() => {
     const set = new Set<string>();
     lots.forEach(lot => {
@@ -69,7 +74,7 @@ export default function LotRegistration() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.productType || !form.productPresentation || !form.client || !form.quantityReceived || !form.chamber || !form.rack || !form.level || !form.widthPos || !form.lengthPos) {
+    if (!form.productType || !form.productPresentation || !form.client || !form.quantityReceived || !form.unit || !form.chamber || !form.rack || !form.level || !form.widthPos || !form.lengthPos) {
       toast.error('Por favor completa todos los campos requeridos');
       return;
     }
@@ -83,6 +88,7 @@ export default function LotRegistration() {
       client: form.client,
       productionLot: form.productionLot,
       quantityReceived: parseInt(form.quantityReceived),
+      unit: form.unit as UnitType,
       location: { chamber: form.chamber, rack: form.rack, level: form.level, position },
       observations: form.observations,
       productionDate: form.productionDate,
@@ -133,6 +139,15 @@ export default function LotRegistration() {
               <div className="space-y-2">
                 <Label htmlFor="quantityReceived">Cantidad Recibida *</Label>
                 <Input id="quantityReceived" name="quantityReceived" type="number" value={form.quantityReceived} onChange={handleChange} placeholder="0" />
+              </div>
+              <div className="space-y-2">
+                <Label>Unidad *</Label>
+                <Select value={form.unit} onValueChange={(v) => setForm(prev => ({ ...prev, unit: v }))}>
+                  <SelectTrigger><SelectValue placeholder="Seleccionar unidad" /></SelectTrigger>
+                  <SelectContent>
+                    {UNITS.map(u => <SelectItem key={u.value} value={u.value}>{u.label}</SelectItem>)}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="productionDate">Fecha de Producción</Label>

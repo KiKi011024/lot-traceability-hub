@@ -44,7 +44,7 @@ export default function Withdrawals() {
       quantity: qty,
       notes: withdrawNotes || 'Salida registrada',
     });
-    toast.success(`${qty} unidades retiradas del lote ${selectedLot.lotCode}`);
+    toast.success(`${qty} ${selectedLot.unit} retirados del lote ${selectedLot.lotCode}`);
     setWithdrawQty('');
     setWithdrawNotes('');
     setSelectedLotId('');
