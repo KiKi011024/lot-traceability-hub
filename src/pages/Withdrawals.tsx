@@ -226,7 +226,7 @@ export default function Withdrawals() {
                       <p className="text-sm text-muted-foreground truncate">{lot.productPresentation} — {lot.client}</p>
                     </div>
                     <div className="text-right shrink-0">
-                      <p className="font-mono text-sm font-bold">{avail} <span className="text-muted-foreground font-normal">/ {lot.quantityReceived}</span></p>
+                      <p className="font-mono text-sm font-bold">{avail} <span className="text-muted-foreground font-normal">/ {lot.quantityReceived} {lot.unit}</span></p>
                       <p className="text-xs text-muted-foreground font-mono">
                         {lot.location.chamber}-{lot.location.rack}
                       </p>
