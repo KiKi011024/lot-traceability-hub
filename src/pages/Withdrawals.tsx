@@ -263,7 +263,7 @@ export default function Withdrawals() {
                 <div key={w.id} className="flex items-center gap-4 p-3 rounded-lg border text-sm">
                   <ArrowDownRight className="h-4 w-4 text-warning shrink-0" />
                   <span className="font-mono text-primary font-semibold">{w.lot.lotCode}</span>
-                  <span className="font-mono">{w.quantity} uds.</span>
+                  <span className="font-mono">{w.quantity} {w.lot.unit}</span>
                   <span className="text-muted-foreground flex-1 truncate">{w.notes}</span>
                   <span className="text-xs text-muted-foreground font-mono shrink-0">
                     {new Date(w.date).toLocaleString()}
