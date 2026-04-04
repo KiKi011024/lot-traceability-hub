@@ -103,7 +103,7 @@ export default function Withdrawals() {
                   <SelectContent>
                     {activeLots.map(l => (
                       <SelectItem key={l.id} value={l.id}>
-                        {l.lotCode} — {l.productPresentation} ({l.quantityReceived - l.quantityWithdrawn} disp.)
+                        {l.lotCode} — {l.productPresentation} ({l.quantityReceived - l.quantityWithdrawn} {l.unit} disp.)
                       </SelectItem>
                     ))}
                   </SelectContent>
