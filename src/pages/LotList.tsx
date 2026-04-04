@@ -9,6 +9,15 @@ import { PlusCircle } from 'lucide-react';
 export default function LotList() {
   const { lots } = useWarehouse();
 
+  const statusLabel = (status: string) => {
+    switch (status) {
+      case 'stored': return 'Almacenado';
+      case 'partial': return 'Parcial';
+      case 'dispatched': return 'Despachado';
+      default: return status;
+    }
+  };
+
   const statusColor = (status: string) => {
     switch (status) {
       case 'stored': return 'bg-success/15 text-success border-success/30';
@@ -22,26 +31,27 @@ export default function LotList() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Lot Registry</h1>
-          <p className="text-muted-foreground mt-1">{lots.length} lots registered</p>
+          <h1 className="text-3xl font-bold text-foreground">Registro de Lotes</h1>
+          <p className="text-muted-foreground mt-1">{lots.length} lotes registrados</p>
         </div>
         <Button asChild>
-          <Link to="/lots/new"><PlusCircle className="h-4 w-4 mr-2" />New Lot</Link>
+          <Link to="/lots/new"><PlusCircle className="h-4 w-4 mr-2" />Nuevo Lote</Link>
         </Button>
       </div>
 
       <Card>
-        <CardHeader><CardTitle>All Lots</CardTitle></CardHeader>
+        <CardHeader><CardTitle>Todos los Lotes</CardTitle></CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Lot Code</TableHead>
-                <TableHead>Product</TableHead>
-                <TableHead>Client</TableHead>
-                <TableHead>Qty</TableHead>
-                <TableHead>Location</TableHead>
-                <TableHead>Status</TableHead>
+                <TableHead>Código</TableHead>
+                <TableHead>Producto</TableHead>
+                <TableHead>Cliente</TableHead>
+                <TableHead>Cantidad</TableHead>
+                <TableHead>Unidad</TableHead>
+                <TableHead>Ubicación</TableHead>
+                <TableHead>Estado</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -57,11 +67,12 @@ export default function LotList() {
                   <TableCell className="font-mono">
                     {lot.quantityReceived - lot.quantityWithdrawn}/{lot.quantityReceived}
                   </TableCell>
+                  <TableCell className="capitalize">{lot.unit}</TableCell>
                   <TableCell className="font-mono text-xs">
                     {lot.location.chamber}-{lot.location.rack}-{lot.location.level}-{lot.location.position}
                   </TableCell>
                   <TableCell>
-                    <Badge variant="outline" className={statusColor(lot.status)}>{lot.status}</Badge>
+                    <Badge variant="outline" className={statusColor(lot.status)}>{statusLabel(lot.status)}</Badge>
                   </TableCell>
                 </TableRow>
               ))}

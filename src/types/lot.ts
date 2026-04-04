@@ -13,6 +13,8 @@ export interface LotMovement {
   notes: string;
 }
 
+export type UnitType = 'sacos' | 'cajas';
+
 export interface Lot {
   id: string;
   lotCode: string;
@@ -21,6 +23,7 @@ export interface Lot {
   productionLot: string;
   quantityReceived: number;
   quantityWithdrawn: number;
+  unit: UnitType;
   location: Location;
   observations: string;
   productionDate: string;
