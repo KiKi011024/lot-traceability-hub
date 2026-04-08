@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useWarehouse } from '@/context/WarehouseContext';
-import { UnitType } from '@/types/lot';
+import { UnitType, Location, MAX_CAPACITY_PER_SLOT } from '@/types/lot';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
+import { Badge } from '@/components/ui/badge';
 
 const PRODUCT_TYPES = ['Bonito', 'Concha', 'Pota'] as const;
 
@@ -40,8 +41,34 @@ const UNITS: { value: UnitType; label: string }[] = [
   { value: 'cajas', label: 'Cajas' },
 ];
 
+function calculatePositions(
+  startCol: number, startRow: number, count: number,
+  chamber: string, rack: string, level: string,
+  occupied: Set<string>
+): Location[] | null {
+  const positions: Location[] = [];
+  let col = startCol;
+  let row = startRow;
+
+  while (positions.length < count) {
+    if (col > WIDTH) return null; // no more space
+    const pos = `${String(col).padStart(2, '0')}-${String(row).padStart(2, '0')}`;
+    const key = `${chamber}-${rack}-${level}-${pos}`;
+    if (occupied.has(key)) {
+      // skip occupied, move to next
+      row++;
+      if (row > LENGTH) { row = 1; col++; }
+      continue;
+    }
+    positions.push({ chamber, rack, level, position: pos });
+    row++;
+    if (row > LENGTH) { row = 1; col++; }
+  }
+  return positions;
+}
+
 export default function LotRegistration() {
-  const { addLot, lots } = useWarehouse();
+  const { addLot, getOccupiedPositions } = useWarehouse();
   const navigate = useNavigate();
 
   const [form, setForm] = useState({
@@ -51,22 +78,20 @@ export default function LotRegistration() {
   });
 
   const selectedChamber = CHAMBERS.find(c => c.id === form.chamber);
+  const occupiedPositions = useMemo(() => getOccupiedPositions(), [getOccupiedPositions]);
 
-  const occupiedPositions = useMemo(() => {
-    const set = new Set<string>();
-    lots.forEach(lot => {
-      if (lot.status !== 'dispatched') {
-        set.add(`${lot.location.chamber}-${lot.location.rack}-${lot.location.level}-${lot.location.position}`);
-      }
-    });
-    return set;
-  }, [lots]);
+  const quantity = parseInt(form.quantityReceived) || 0;
+  const slotsNeeded = quantity > 0 ? Math.ceil(quantity / MAX_CAPACITY_PER_SLOT) : 0;
 
-  const currentPositionKey = form.chamber && form.rack && form.level && form.widthPos && form.lengthPos
-    ? `${form.chamber}-${form.rack}-${form.level}-${form.widthPos.padStart(2, '0')}-${form.lengthPos.padStart(2, '0')}`
-    : null;
+  const calculatedPositions = useMemo(() => {
+    if (!form.chamber || !form.rack || !form.level || !form.widthPos || !form.lengthPos || slotsNeeded === 0) return null;
+    return calculatePositions(
+      parseInt(form.widthPos), parseInt(form.lengthPos), slotsNeeded,
+      form.chamber, form.rack, form.level, occupiedPositions
+    );
+  }, [form.chamber, form.rack, form.level, form.widthPos, form.lengthPos, slotsNeeded, occupiedPositions]);
 
-  const isPositionOccupied = currentPositionKey ? occupiedPositions.has(currentPositionKey) : false;
+  const hasError = slotsNeeded > 0 && calculatedPositions === null && form.widthPos && form.lengthPos;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -78,23 +103,22 @@ export default function LotRegistration() {
       toast.error('Por favor completa todos los campos requeridos');
       return;
     }
-    if (isPositionOccupied) {
-      toast.error('Esta posición ya está ocupada. Selecciona otra ubicación.');
+    if (!calculatedPositions || calculatedPositions.length === 0) {
+      toast.error('No hay suficiente espacio disponible desde la posición seleccionada.');
       return;
     }
-    const position = `${form.widthPos.padStart(2, '0')}-${form.lengthPos.padStart(2, '0')}`;
     const newLot = addLot({
       productPresentation: `${form.productType} - ${form.productPresentation}`,
       client: form.client,
       productionLot: form.productionLot,
-      quantityReceived: parseInt(form.quantityReceived),
+      quantityReceived: quantity,
       unit: form.unit as UnitType,
-      location: { chamber: form.chamber, rack: form.rack, level: form.level, position },
+      locations: calculatedPositions,
       observations: form.observations,
       productionDate: form.productionDate,
       dispatchDate: null,
     });
-    toast.success(`Lote ${newLot.lotCode} registrado exitosamente`);
+    toast.success(`Lote ${newLot.lotCode} registrado en ${calculatedPositions.length} posiciones`);
     navigate(`/lots/${newLot.id}`);
   };
 
@@ -139,6 +163,11 @@ export default function LotRegistration() {
               <div className="space-y-2">
                 <Label htmlFor="quantityReceived">Cantidad Recibida *</Label>
                 <Input id="quantityReceived" name="quantityReceived" type="number" value={form.quantityReceived} onChange={handleChange} placeholder="0" />
+                {quantity > 0 && (
+                  <p className="text-xs text-muted-foreground">
+                    Máx. {MAX_CAPACITY_PER_SLOT} por posición → <span className="font-semibold text-foreground">{slotsNeeded} posiciones</span> necesarias
+                  </p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label>Unidad *</Label>
@@ -160,6 +189,7 @@ export default function LotRegistration() {
         <Card className="mt-4">
           <CardHeader><CardTitle>Asignación de Ubicación</CardTitle></CardHeader>
           <CardContent className="space-y-4">
+            <p className="text-sm text-muted-foreground">Selecciona la posición inicial. Las posiciones adicionales se asignarán automáticamente de forma consecutiva.</p>
             <div className="grid gap-4 grid-cols-2">
               <div className="space-y-2">
                 <Label>Cámara *</Label>
@@ -189,7 +219,7 @@ export default function LotRegistration() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Ancho (Columna) *</Label>
+                <Label>Columna inicial *</Label>
                 <Select value={form.widthPos} onValueChange={(v) => setForm(prev => ({ ...prev, widthPos: v }))}>
                   <SelectTrigger><SelectValue placeholder="Col." /></SelectTrigger>
                   <SelectContent>
@@ -200,7 +230,7 @@ export default function LotRegistration() {
                 </Select>
               </div>
               <div className="space-y-2 col-span-2">
-                <Label>Largo (Fila) *</Label>
+                <Label>Fila inicial *</Label>
                 <Select value={form.lengthPos} onValueChange={(v) => setForm(prev => ({ ...prev, lengthPos: v }))}>
                   <SelectTrigger><SelectValue placeholder="Fila" /></SelectTrigger>
                   <SelectContent>
@@ -211,11 +241,22 @@ export default function LotRegistration() {
                 </Select>
               </div>
             </div>
-            {isPositionOccupied && (
-              <p className="text-sm text-destructive font-medium">⚠ Esta posición ya está ocupada por otro lote.</p>
+
+            {calculatedPositions && calculatedPositions.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-sm font-medium text-foreground">✓ Posiciones asignadas ({calculatedPositions.length}):</p>
+                <div className="flex flex-wrap gap-1">
+                  {calculatedPositions.map((loc, i) => (
+                    <Badge key={i} variant="secondary" className="font-mono text-xs">
+                      {loc.position}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
             )}
-            {currentPositionKey && !isPositionOccupied && (
-              <p className="text-sm text-success font-medium">✓ Posición disponible</p>
+
+            {hasError && (
+              <p className="text-sm text-destructive font-medium">⚠ No hay suficientes posiciones disponibles desde este punto. Selecciona otra ubicación.</p>
             )}
           </CardContent>
         </Card>
@@ -231,7 +272,7 @@ export default function LotRegistration() {
         </Card>
 
         <div className="flex gap-3 mt-6">
-          <Button type="submit" className="flex-1" disabled={isPositionOccupied}>Registrar Lote</Button>
+          <Button type="submit" className="flex-1" disabled={!!hasError || !calculatedPositions}>Registrar Lote</Button>
           <Button type="button" variant="outline" onClick={() => navigate('/lots')}>Cancelar</Button>
         </div>
       </form>
