@@ -119,7 +119,7 @@ function BlockScene({
 }: {
   blockId: string;
   chamberId: string;
-  lotMap: Map<string, Lot>;
+  lotMap: Map<string, { lot: Lot; quantity: number }>;
   onHover: (info: SlotInfo) => void;
   onLeave: () => void;
   onClick: (info: SlotInfo) => void;
