@@ -69,7 +69,7 @@ export default function LotList() {
                   </TableCell>
                   <TableCell className="capitalize">{lot.unit}</TableCell>
                   <TableCell className="font-mono text-xs">
-                    {lot.location.chamber}-{lot.location.rack}-{lot.location.level}-{lot.location.position}
+                    {lot.locations[0]?.chamber}-{lot.locations[0]?.rack}-N{lot.locations[0]?.level}{lot.locations.length > 1 ? ` (${lot.locations.length} pos.)` : `-${lot.locations[0]?.position}`}
                   </TableCell>
                   <TableCell>
                     <Badge variant="outline" className={statusColor(lot.status)}>{statusLabel(lot.status)}</Badge>

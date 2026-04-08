@@ -149,10 +149,10 @@ export default function LotDetail() {
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2"><MapPin className="h-4 w-4" />Ubicación</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
-            <div className="flex justify-between"><span className="text-muted-foreground">Cámara</span><span className="font-mono font-bold">{lot.location.chamber}</span></div>
-            <div className="flex justify-between"><span className="text-muted-foreground">Bloque</span><span className="font-mono">{lot.location.rack}</span></div>
-            <div className="flex justify-between"><span className="text-muted-foreground">Nivel</span><span className="font-mono">{lot.location.level}</span></div>
-            <div className="flex justify-between"><span className="text-muted-foreground">Posición</span><span className="font-mono">{lot.location.position}</span></div>
+            <div className="flex justify-between"><span className="text-muted-foreground">Cámara</span><span className="font-mono font-bold">{lot.locations[0]?.chamber}</span></div>
+            <div className="flex justify-between"><span className="text-muted-foreground">Bloque</span><span className="font-mono">{lot.locations[0]?.rack}</span></div>
+            <div className="flex justify-between"><span className="text-muted-foreground">Nivel</span><span className="font-mono">{lot.locations[0]?.level}</span></div>
+            <div className="flex justify-between"><span className="text-muted-foreground">Posiciones</span><span className="font-mono">{lot.locations.length} ({lot.locations.map(l => l.position).join(', ')})</span></div>
           </CardContent>
         </Card>
 

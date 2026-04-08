@@ -90,7 +90,7 @@ export default function Dashboard() {
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="text-xs text-muted-foreground font-mono">
-                    {lot.location.chamber}-{lot.location.rack}-{lot.location.level}-{lot.location.position}
+                    {lot.locations[0]?.chamber}-{lot.locations[0]?.rack}-N{lot.locations[0]?.level}{lot.locations.length > 1 ? ` (${lot.locations.length} pos.)` : `-${lot.locations[0]?.position}`}
                   </span>
                   <Badge variant="outline" className={statusColor(lot.status)}>
                     {lot.status}

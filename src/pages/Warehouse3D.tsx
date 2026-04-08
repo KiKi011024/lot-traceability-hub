@@ -292,8 +292,10 @@ export default function Warehouse3D() {
     const map = new Map<string, Lot>();
     lots.forEach((lot) => {
       if (lot.status !== 'dispatched') {
-        const key = `${lot.location.chamber}-${lot.location.rack}-${lot.location.level}-${lot.location.position}`;
-        map.set(key, lot);
+        lot.locations.forEach(loc => {
+          const key = `${loc.chamber}-${loc.rack}-${loc.level}-${loc.position}`;
+          map.set(key, lot);
+        });
       }
     });
     return map;
