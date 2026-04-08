@@ -1,7 +1,7 @@
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Text, PerspectiveCamera } from '@react-three/drei';
 import { useWarehouse } from '@/context/WarehouseContext';
-import { Lot } from '@/types/lot';
+import { Lot, MAX_CAPACITY_PER_SLOT } from '@/types/lot';
 import { useState, useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -42,6 +42,7 @@ interface SlotInfo {
   lengthIdx: number;
   levelIdx: number;
   lot: Lot | null;
+  slotQuantity: number; // how many units in this specific slot
 }
 
 const SLOT_SIZE = { x: 0.85, y: 0.65, z: 0.85 };
@@ -68,7 +69,7 @@ function RackSlot({
   const color = slotInfo.lot
     ? slotInfo.lot.status === 'dispatched'
       ? '#94a3b8'
-      : slotInfo.lot.status === 'partial'
+      : slotInfo.slotQuantity < MAX_CAPACITY_PER_SLOT
         ? '#f59e0b'
         : '#22c55e'
     : '#cbd5e1';
@@ -118,7 +119,7 @@ function BlockScene({
 }: {
   blockId: string;
   chamberId: string;
-  lotMap: Map<string, Lot>;
+  lotMap: Map<string, { lot: Lot; quantity: number }>;
   onHover: (info: SlotInfo) => void;
   onLeave: () => void;
   onClick: (info: SlotInfo) => void;
@@ -139,7 +140,7 @@ function BlockScene({
         const levelStr = String(lvl + 1);
         const posStr = `${String(w + 1).padStart(2, '0')}-${String(l + 1).padStart(2, '0')}`;
         const key = `${chamberId}-${blockId}-${levelStr}-${posStr}`;
-        const lot = lotMap.get(key) || null;
+        const entry = lotMap.get(key) || null;
 
         const x = offsetX + w * CELL_X;
         const y = lvl * CELL_Y + SLOT_SIZE.y / 2;
@@ -157,7 +158,8 @@ function BlockScene({
               widthIdx: w,
               lengthIdx: l,
               levelIdx: lvl,
-              lot,
+              lot: entry?.lot || null,
+              slotQuantity: entry?.quantity || 0,
             }}
             onHover={onHover}
             onLeave={onLeave}
@@ -213,7 +215,7 @@ function WarehouseScene({
   onHover: (info: SlotInfo) => void;
   onLeave: () => void;
   onClick: (info: SlotInfo) => void;
-  lotMap: Map<string, Lot>;
+  lotMap: Map<string, { lot: Lot; quantity: number }>;
 }) {
   const { width, length, levels } = WAREHOUSE_CONFIG;
   const totalL = length * CELL_Z;
@@ -289,12 +291,15 @@ export default function Warehouse3D() {
   const currentBlock = chamber.blocks.find(b => b.id === selectedBlock) ? selectedBlock : chamber.blocks[0].id;
 
   const lotMap = useMemo(() => {
-    const map = new Map<string, Lot>();
+    const map = new Map<string, { lot: Lot; quantity: number }>();
     lots.forEach((lot) => {
       if (lot.status !== 'dispatched') {
-        lot.locations.forEach(loc => {
+        const remaining = lot.quantityReceived - lot.quantityWithdrawn;
+        lot.locations.forEach((loc, idx) => {
           const key = `${loc.chamber}-${loc.rack}-${loc.level}-${loc.position}`;
-          map.set(key, lot);
+          // Each slot holds up to MAX_CAPACITY_PER_SLOT; last slot gets the remainder
+          const slotQty = Math.min(MAX_CAPACITY_PER_SLOT, remaining - idx * MAX_CAPACITY_PER_SLOT);
+          map.set(key, { lot, quantity: Math.max(0, slotQty) });
         });
       }
     });
@@ -335,7 +340,7 @@ export default function Warehouse3D() {
         <div className="flex gap-4 text-sm">
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-sm bg-success" />
-            <span className="text-muted-foreground">Ocupado</span>
+            <span className="text-muted-foreground">Completo (45)</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-sm bg-warning" />
@@ -471,7 +476,10 @@ export default function Warehouse3D() {
                       <p className="font-medium">{displaySlot.lot.productPresentation}</p>
                       <p className="text-muted-foreground">{displaySlot.lot.client}</p>
                       <p className="text-muted-foreground font-mono text-xs">
-                        {displaySlot.lot.quantityReceived - displaySlot.lot.quantityWithdrawn} / {displaySlot.lot.quantityReceived} unidades
+                        {displaySlot.slotQuantity} / {MAX_CAPACITY_PER_SLOT} {displaySlot.lot.unit} en este espacio
+                      </p>
+                      <p className="text-muted-foreground font-mono text-xs">
+                        Lote total: {displaySlot.lot.quantityReceived - displaySlot.lot.quantityWithdrawn} / {displaySlot.lot.quantityReceived} {displaySlot.lot.unit}
                       </p>
                     </div>
                   </div>
