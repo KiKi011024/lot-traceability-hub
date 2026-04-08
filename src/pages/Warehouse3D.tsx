@@ -1,7 +1,7 @@
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Text, PerspectiveCamera } from '@react-three/drei';
 import { useWarehouse } from '@/context/WarehouseContext';
-import { Lot } from '@/types/lot';
+import { Lot, MAX_CAPACITY_PER_SLOT } from '@/types/lot';
 import { useState, useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
