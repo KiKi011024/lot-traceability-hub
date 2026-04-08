@@ -476,7 +476,10 @@ export default function Warehouse3D() {
                       <p className="font-medium">{displaySlot.lot.productPresentation}</p>
                       <p className="text-muted-foreground">{displaySlot.lot.client}</p>
                       <p className="text-muted-foreground font-mono text-xs">
-                        {displaySlot.lot.quantityReceived - displaySlot.lot.quantityWithdrawn} / {displaySlot.lot.quantityReceived} unidades
+                        {displaySlot.slotQuantity} / {MAX_CAPACITY_PER_SLOT} {displaySlot.lot.unit} en este espacio
+                      </p>
+                      <p className="text-muted-foreground font-mono text-xs">
+                        Lote total: {displaySlot.lot.quantityReceived - displaySlot.lot.quantityWithdrawn} / {displaySlot.lot.quantityReceived} {displaySlot.lot.unit}
                       </p>
                     </div>
                   </div>
