@@ -69,7 +69,7 @@ function RackSlot({
   const color = slotInfo.lot
     ? slotInfo.lot.status === 'dispatched'
       ? '#94a3b8'
-      : slotInfo.lot.status === 'partial'
+      : slotInfo.slotQuantity < MAX_CAPACITY_PER_SLOT
         ? '#f59e0b'
         : '#22c55e'
     : '#cbd5e1';
