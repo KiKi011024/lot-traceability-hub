@@ -140,7 +140,7 @@ function BlockScene({
         const levelStr = String(lvl + 1);
         const posStr = `${String(w + 1).padStart(2, '0')}-${String(l + 1).padStart(2, '0')}`;
         const key = `${chamberId}-${blockId}-${levelStr}-${posStr}`;
-        const lot = lotMap.get(key) || null;
+        const entry = lotMap.get(key) || null;
 
         const x = offsetX + w * CELL_X;
         const y = lvl * CELL_Y + SLOT_SIZE.y / 2;
@@ -158,7 +158,8 @@ function BlockScene({
               widthIdx: w,
               lengthIdx: l,
               levelIdx: lvl,
-              lot,
+              lot: entry?.lot || null,
+              slotQuantity: entry?.quantity || 0,
             }}
             onHover={onHover}
             onLeave={onLeave}
