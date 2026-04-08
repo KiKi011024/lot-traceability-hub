@@ -215,7 +215,7 @@ function WarehouseScene({
   onHover: (info: SlotInfo) => void;
   onLeave: () => void;
   onClick: (info: SlotInfo) => void;
-  lotMap: Map<string, Lot>;
+  lotMap: Map<string, { lot: Lot; quantity: number }>;
 }) {
   const { width, length, levels } = WAREHOUSE_CONFIG;
   const totalL = length * CELL_Z;
@@ -291,12 +291,15 @@ export default function Warehouse3D() {
   const currentBlock = chamber.blocks.find(b => b.id === selectedBlock) ? selectedBlock : chamber.blocks[0].id;
 
   const lotMap = useMemo(() => {
-    const map = new Map<string, Lot>();
+    const map = new Map<string, { lot: Lot; quantity: number }>();
     lots.forEach((lot) => {
       if (lot.status !== 'dispatched') {
-        lot.locations.forEach(loc => {
+        const remaining = lot.quantityReceived - lot.quantityWithdrawn;
+        lot.locations.forEach((loc, idx) => {
           const key = `${loc.chamber}-${loc.rack}-${loc.level}-${loc.position}`;
-          map.set(key, lot);
+          // Each slot holds up to MAX_CAPACITY_PER_SLOT; last slot gets the remainder
+          const slotQty = Math.min(MAX_CAPACITY_PER_SLOT, remaining - idx * MAX_CAPACITY_PER_SLOT);
+          map.set(key, { lot, quantity: Math.max(0, slotQty) });
         });
       }
     });
