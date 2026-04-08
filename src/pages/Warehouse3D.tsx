@@ -340,7 +340,7 @@ export default function Warehouse3D() {
         <div className="flex gap-4 text-sm">
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-sm bg-success" />
-            <span className="text-muted-foreground">Ocupado</span>
+            <span className="text-muted-foreground">Completo (45)</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-sm bg-warning" />
