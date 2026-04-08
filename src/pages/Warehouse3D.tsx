@@ -42,6 +42,7 @@ interface SlotInfo {
   lengthIdx: number;
   levelIdx: number;
   lot: Lot | null;
+  slotQuantity: number; // how many units in this specific slot
 }
 
 const SLOT_SIZE = { x: 0.85, y: 0.65, z: 0.85 };
