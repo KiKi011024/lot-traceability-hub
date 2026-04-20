@@ -14,7 +14,7 @@ const WAREHOUSE_CONFIG = {
   chambers: [
     {
       id: 'C',
-      label: 'Cámara C',
+      label: 'Cámara 3',
       blocks: [
         { id: '01', label: 'Bloque 01' },
         { id: '02', label: 'Bloque 02' },
@@ -22,7 +22,7 @@ const WAREHOUSE_CONFIG = {
     },
     {
       id: 'B',
-      label: 'Cámara B',
+      label: 'Cámara 2',
       blocks: [
         { id: '01', label: 'Bloque 01' },
       ],
