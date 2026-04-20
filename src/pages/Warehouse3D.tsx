@@ -442,13 +442,13 @@ export default function Warehouse3D() {
                 <div>
                   <p className="text-xs text-muted-foreground uppercase tracking-wider">Ubicación</p>
                   <p className="text-lg font-mono font-bold text-primary mt-1">
-                    {displaySlot.chamber}-{displaySlot.rack}-N{displaySlot.level}-{displaySlot.position}
+                    {chamberDisplay(displaySlot.chamber)}-{displaySlot.rack}-N{displaySlot.level}-{displaySlot.position}
                   </p>
                 </div>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Cámara</span>
-                    <span className="font-medium">{displaySlot.chamber}</span>
+                    <span className="font-medium">{chamberDisplay(displaySlot.chamber)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Bloque</span>
