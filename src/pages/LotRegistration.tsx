@@ -28,8 +28,8 @@ const PRESENTATIONS: Record<string, string[]> = {
 };
 
 const CHAMBERS = [
-  { id: 'C', label: 'Cámara C', blocks: ['01', '02'] },
-  { id: 'B', label: 'Cámara B', blocks: ['01'] },
+  { id: 'C', label: 'Cámara 3', blocks: ['01', '02'] },
+  { id: 'B', label: 'Cámara 2', blocks: ['01'] },
 ];
 
 const LEVELS = ['1', '2', '3', '4'];
