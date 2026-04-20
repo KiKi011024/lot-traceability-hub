@@ -1,4 +1,5 @@
 import { useWarehouse } from '@/context/WarehouseContext';
+import { chamberDisplay } from '@/types/lot';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Package, PackageCheck, PackageMinus, MapPin } from 'lucide-react';
@@ -90,7 +91,7 @@ export default function Dashboard() {
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="text-xs text-muted-foreground font-mono">
-                    {lot.locations[0]?.chamber}-{lot.locations[0]?.rack}-N{lot.locations[0]?.level}{lot.locations.length > 1 ? ` (${lot.locations.length} pos.)` : `-${lot.locations[0]?.position}`}
+                    {chamberDisplay(lot.locations[0]?.chamber ?? '')}-{lot.locations[0]?.rack}-N{lot.locations[0]?.level}{lot.locations.length > 1 ? ` (${lot.locations.length} pos.)` : `-${lot.locations[0]?.position}`}
                   </span>
                   <Badge variant="outline" className={statusColor(lot.status)}>
                     {lot.status}
