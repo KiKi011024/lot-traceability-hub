@@ -35,18 +35,27 @@ export interface Lot {
   status: 'stored' | 'partial' | 'dispatched';
 }
 
+// Map internal chamber IDs to display names
+const CHAMBER_DISPLAY_MAP: Record<string, string> = { B: '2', C: '3' };
+export function chamberDisplay(id: string): string {
+  return CHAMBER_DISPLAY_MAP[id] ?? id;
+}
+export function chamberLabel(id: string): string {
+  return `Cámara ${chamberDisplay(id)}`;
+}
+
 export function formatLocations(locations: Location[]): string {
   if (locations.length === 0) return '-';
   if (locations.length === 1) {
     const l = locations[0];
-    return `${l.chamber}-${l.rack}-N${l.level}-${l.position}`;
+    return `${chamberDisplay(l.chamber)}-${l.rack}-N${l.level}-${l.position}`;
   }
   const first = locations[0];
-  return `${first.chamber}-${first.rack}-N${first.level} (${locations.length} pos.)`;
+  return `${chamberDisplay(first.chamber)}-${first.rack}-N${first.level} (${locations.length} pos.)`;
 }
 
 export function formatLocationsShort(locations: Location[]): string {
   if (locations.length === 0) return '-';
   const first = locations[0];
-  return `${first.chamber}-${first.rack}${locations.length > 1 ? ` (${locations.length})` : ''}`;
+  return `${chamberDisplay(first.chamber)}-${first.rack}${locations.length > 1 ? ` (${locations.length})` : ''}`;
 }

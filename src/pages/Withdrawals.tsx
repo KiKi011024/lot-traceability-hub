@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useWarehouse } from '@/context/WarehouseContext';
+import { chamberDisplay } from '@/types/lot';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -123,7 +124,7 @@ export default function Withdrawals() {
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Ubicación</span>
                       <span className="font-mono text-xs">
-                        {selectedLot.locations[0]?.chamber}-{selectedLot.locations[0]?.rack}-N{selectedLot.locations[0]?.level}{selectedLot.locations.length > 1 ? ` (${selectedLot.locations.length} pos.)` : `-${selectedLot.locations[0]?.position}`}
+                        {chamberDisplay(selectedLot.locations[0]?.chamber ?? '')}-{selectedLot.locations[0]?.rack}-N{selectedLot.locations[0]?.level}{selectedLot.locations.length > 1 ? ` (${selectedLot.locations.length} pos.)` : `-${selectedLot.locations[0]?.position}`}
                       </span>
                     </div>
                     <div className="flex justify-between">
@@ -228,7 +229,7 @@ export default function Withdrawals() {
                     <div className="text-right shrink-0">
                       <p className="font-mono text-sm font-bold">{avail} <span className="text-muted-foreground font-normal">/ {lot.quantityReceived} {lot.unit}</span></p>
                       <p className="text-xs text-muted-foreground font-mono">
-                        {lot.locations[0]?.chamber}-{lot.locations[0]?.rack}{lot.locations.length > 1 ? ` (${lot.locations.length} pos.)` : ''}
+                        {chamberDisplay(lot.locations[0]?.chamber ?? '')}-{lot.locations[0]?.rack}{lot.locations.length > 1 ? ` (${lot.locations.length} pos.)` : ''}
                       </p>
                     </div>
                     <Button

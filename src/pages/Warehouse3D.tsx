@@ -1,7 +1,7 @@
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Text, PerspectiveCamera } from '@react-three/drei';
 import { useWarehouse } from '@/context/WarehouseContext';
-import { Lot, MAX_CAPACITY_PER_SLOT } from '@/types/lot';
+import { Lot, MAX_CAPACITY_PER_SLOT, chamberDisplay } from '@/types/lot';
 import { useState, useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -14,7 +14,7 @@ const WAREHOUSE_CONFIG = {
   chambers: [
     {
       id: 'C',
-      label: 'Cámara C',
+      label: 'Cámara 3',
       blocks: [
         { id: '01', label: 'Bloque 01' },
         { id: '02', label: 'Bloque 02' },
@@ -22,7 +22,7 @@ const WAREHOUSE_CONFIG = {
     },
     {
       id: 'B',
-      label: 'Cámara B',
+      label: 'Cámara 2',
       blocks: [
         { id: '01', label: 'Bloque 01' },
       ],
@@ -442,13 +442,13 @@ export default function Warehouse3D() {
                 <div>
                   <p className="text-xs text-muted-foreground uppercase tracking-wider">Ubicación</p>
                   <p className="text-lg font-mono font-bold text-primary mt-1">
-                    {displaySlot.chamber}-{displaySlot.rack}-N{displaySlot.level}-{displaySlot.position}
+                    {chamberDisplay(displaySlot.chamber)}-{displaySlot.rack}-N{displaySlot.level}-{displaySlot.position}
                   </p>
                 </div>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Cámara</span>
-                    <span className="font-medium">{displaySlot.chamber}</span>
+                    <span className="font-medium">{chamberDisplay(displaySlot.chamber)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Bloque</span>
